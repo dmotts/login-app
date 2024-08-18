@@ -14,7 +14,7 @@ class AuthRoutes:
         Initializes the AuthRoutes with a Flask Blueprint and in-memory user storage.
         """
         self.blueprint = Blueprint('auth', __name__)
-        self.users = {}
+        self.users = {}  # Dictionary to simulate a user database
 
         # Configure logging
         self.logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class AuthRoutes:
 
         # Define routes
         self.blueprint.add_url_rule('/login', 'login', self.login, methods=['GET', 'POST'])
-        self.blueprint.add_url_rule('/register', 'register', self.register, methods=['GET', 'POST'])
+        self.blueprint.add_url_rule('/signup', 'signup', self.signup, methods=['GET', 'POST'])
         self.blueprint.add_url_rule('/logout', 'logout', self.logout)
 
     def login(self):
@@ -34,45 +34,44 @@ class AuthRoutes:
         Handles user login. If the credentials are correct, the user is logged in and redirected to the home page.
         """
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
+            email = request.form['signin-email']
+            password = request.form['signin-password']
 
-            if username in self.users and check_password_hash(self.users[username], password):
-                session['username'] = username
-                self.logger.info(f'User {username} logged in successfully.')
+            user = self.users.get(email)
+            if user and check_password_hash(user['password'], password):
+                session['username'] = user['name']
+                self.logger.info(f'User {user["name"]} logged in successfully.')
                 return redirect(url_for('index'))
             else:
-                flash('Invalid username or password')
-                self.logger.warning(f'Failed login attempt for username: {username}')
+                flash('Invalid email or password')
+                self.logger.warning(f'Failed login attempt for email: {email}')
                 return redirect(url_for('auth.login'))
 
         return render_template('login.html')
 
-    def register(self):
+    def signup(self):
         """
-        Handles new user registration. Users must provide a unique username and matching passwords.
+        Handles new user registration. Users must provide a unique email and matching passwords.
         """
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
-            confirm_password = request.form['confirm_password']
+            name = request.form['signup-name']
+            email = request.form['signup-email']
+            password = request.form['signup-password']
 
-            if username in self.users:
-                flash('Username already exists')
-                self.logger.warning(f'Failed registration attempt for existing username: {username}')
-                return redirect(url_for('auth.register'))
+            if email in self.users:
+                flash('Email already registered')
+                self.logger.warning(f'Failed registration attempt for existing email: {email}')
+                return redirect(url_for('auth.signup'))
 
-            if password != confirm_password:
-                flash('Passwords do not match')
-                self.logger.warning(f'Failed registration attempt due to password mismatch for username: {username}')
-                return redirect(url_for('auth.register'))
-
-            self.users[username] = generate_password_hash(password)
+            self.users[email] = {
+                'name': name,
+                'password': generate_password_hash(password)
+            }
             flash('Registration successful! Please log in.')
-            self.logger.info(f'New user registered with username: {username}')
+            self.logger.info(f'New user registered with email: {email}')
             return redirect(url_for('auth.login'))
 
-        return render_template('register.html')
+        return render_template('signup.html')
 
     def logout(self):
         """
