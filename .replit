@@ -1,5 +1,5 @@
 run =  ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
-entrypoint = "main.py"
+entrypoint = "app.py"
 modules = ["python-3.11"]
 
 hidden = [".pythonlibs"]

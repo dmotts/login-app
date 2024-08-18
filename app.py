@@ -47,6 +47,9 @@ class AuthApp:
         self.logger.info('Starting the Flask application.')
         self.app.run(debug=True)
 
+# Expose the Flask app
+app = AuthApp().app
+
 if __name__ == '__main__':
     auth_app = AuthApp()
     auth_app.run()
